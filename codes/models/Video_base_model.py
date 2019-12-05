@@ -8,6 +8,7 @@ import models.networks as networks
 import models.lr_scheduler as lr_scheduler
 from .base_model import BaseModel
 from models.loss import CharbonnierLoss
+import pyramid_torch as pyramids
 
 logger = logging.getLogger('base')
 
@@ -134,7 +135,19 @@ class VideoBaseModel(BaseModel):
             self.resized_real_H = nn.functional.interpolate(self.real_H, scale_factor=0.5, mode='bilinear', align_corners=False)
             l_pix = self.l_pix_w * self.cri_pix(self.fake_H, self.real_H) + self.cri_pix(self.fake_x2, self.resized_real_H)
 
+        pyr_fake = pyramids.pyramid_decom(img=self.fake_H, max_levels=3)
+        pyr_real = pyramids.pyramid_decom(img=self.real_H, max_levels=3)
+
+        l_pix_0 = self.cri_pix(pyr_fake[0], pyr_real[0])
+        l_pix_1 = self.cri_pix(pyr_fake[1], pyr_real[1])
+        l_pix_2 = self.cri_pix(pyr_fake[2], pyr_real[2])
+
+        l_pix_pyr = l_pix_0 + l_pix_1 + l_pix_2
+
+        l_pix_pyr.backward(retain_graph=True)
+
         l_pix.backward()
+        
         self.optimizer_G.step()
 
         # set log
