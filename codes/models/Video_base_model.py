@@ -8,7 +8,7 @@ import models.networks as networks
 import models.lr_scheduler as lr_scheduler
 from .base_model import BaseModel
 from models.loss import CharbonnierLoss
-import pyramid_torch as pyramids
+import models.pyramid_torch as pyramids
 
 logger = logging.getLogger('base')
 
@@ -147,11 +147,14 @@ class VideoBaseModel(BaseModel):
         l_pix_pyr.backward(retain_graph=True)
 
         l_pix.backward()
-        
+
         self.optimizer_G.step()
 
         # set log
         self.log_dict['l_pix'] = l_pix.item()
+        self.log_dict['l_pix_0'] = l_pix_0.item()
+        self.log_dict['l_pix_1'] = l_pix_1.item()
+        self.log_dict['l_pix_2'] = l_pix_2.item()
 
     def test(self):
         self.netG.eval()
