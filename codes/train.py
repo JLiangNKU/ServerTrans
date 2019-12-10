@@ -27,7 +27,6 @@ def init_dist(backend='nccl', **kwargs):
     torch.cuda.set_device(rank % num_gpus)
     dist.init_process_group(backend=backend, **kwargs)
 
-
 def main():
     #### options
     parser = argparse.ArgumentParser()
@@ -178,11 +177,12 @@ def main():
                     message += '{:.3e},'.format(v)
                 message += ')] '
                 for k, v in logs.items():
-                    message += '{:s}: {:.4e}'.format(k, v) + ' psnr: {:.4}'.format(psnr_sum_train/_)
+                    message += '{:s}: {:.4e}'.format(k, v) 
                     # tensorboard logger
                     if opt['use_tb_logger'] and 'debug' not in opt['name']:
                         if rank <= 0:
                             tb_logger.add_scalar(k, v, current_step)
+                message += ' psnr: {:.4}'.format(psnr_sum_train/_)
                 if rank <= 0:
                     logger.info(message)
 
